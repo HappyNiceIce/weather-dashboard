@@ -1,0 +1,23 @@
+# Файли збірки .NET
+bin/
+obj/
+
+# Файли Visual Studio
+.vs/
+*.user
+*.suo
+
+# Результати тестування
+TestResults/
+
+# Файли журналів
+*.log
+
+# Конфіденційні дані
+.env
+*.secret
+secrets.json
+
+# Системні файли
+Thumbs.db
+.DS_Store
