@@ -1,45 +1,41 @@
-# ADR-002: Відокремити persistence через Repository / Port
+# ADR-003: Підключати джерела даних через адаптери з retry, timeout і статусом Offline
 Status: Accepted
-Date: 2026-11-12
+Date: 2026-11-11
 
 ## Context
-Бізнес-логіка не повинна залежати безпосередньо від SQLite або конкретної
-бібліотеки доступу до даних. Це пов'язано з NFR-01 (Maintainability / Testability)
-та NFR-04 (оптимізація запитів має бути ізольована в Infrastructure).
+Дані надходять із зовнішнього API та/або сенсорів. Джерела можуть бути
+недоступними, повільними або повертати некоректні дані. Збій одного джерела
+не має зупиняти систему (NFR-03), нові джерела мають додаватися без змін
+у ядрі (NFR-05).
 
 ## Decision Drivers
-- тестування Application/Domain без реальної БД;
-- зменшення coupling;
-- можливість заміни способу зберігання;
-- чіткі межі між логікою та Infrastructure.
+- надійність і обробка відмов;
+- розширюваність;
+- секрети лише в Infrastructure/конфігурації (NFR-02).
 
 ## Considered Options
-1. IngestionService напряму використовує SQLite.
-2. Application залежить від IMeasurementRepository, ISensorRepository, IDataSourceRepository.
-3. Глобальний статичний клас доступу до даних.
+1. Application напряму викликає HTTP-клієнт провайдера.
+2. Порт IMeasurementSource + окремий адаптер на кожен тип джерела;
+   retry/timeout у IngestionService.
+3. Event-driven схема з брокером повідомлень.
 
 ## Decision
-Порти (інтерфейси) оголошуються в Application. Реалізації
-(SqliteMeasurementRepository та інші) знаходяться в Infrastructure.
-Application залежить від контракту, а не від реалізації.
+Ввести порт IMeasurementSource. Адаптери (WeatherApiAdapter,
+SimulatedSourceAdapter) живуть в Infrastructure. IngestionService виконує
+до 3 спроб із зростаючою затримкою, таймаут 5 с; після невдачі сенсор
+позначається OFFLINE, помилка логується, обробка інших сенсорів триває.
 
 ## Rationale
-Залежність від абстракції ізолює бізнес-логіку від технології зберігання
-і дозволяє підставити in-memory реалізацію в тестах.
+Порт ізолює Application від деталей провайдера, спрощує тестування
+fake-джерелом. Брокер надлишковий для MVP.
 
 ## Consequences
 ### Positive
-- нижчий coupling;
-- вища тестованість;
-- простіша заміна сховища;
-- чіткіша архітектурна межа.
-
+- ізоляція збоїв; просте додавання джерел; тестованість відмов.
 ### Negative / Risks
-- додаткові інтерфейси та класи;
-- більше коду для простих операцій.
+- затримки retry збільшують час циклу опитування;
+- потрібен підбір параметрів retry/timeout на практиці.
 
 ## Related
-- NFR-01; NFR-04; ASR-01; ASR-04; ADR-001;
-- Issue #8;
-- docs/uml/components.puml;
-- docs/architecture/architecture.md
+- NFR-03; NFR-05; NFR-06; FR-02; FR-07; ASR-03; ASR-05; ADR-001; Issue #<N>;
+- docs/uml/collect-measurements-sequence.puml
