@@ -1,0 +1,65 @@
+@startuml
+class Station {
+ +id: UUID
+ +name: String
+ +location: String
+}
+class Sensor {
+ +id: UUID
+ +name: String
+ +measurementType: MeasurementType
+ +unit: String
+ +sourceType: SourceType
+ +status: SensorStatus
+}
+class Measurement {
+ +id: UUID
+ +value: Double
+ +timestamp: DateTime
+}
+class AlertRule {
+ +id: UUID
+ +condition: Condition
+ +threshold: Double
+ +severity: Severity
+}
+class Alert {
+ +id: UUID
+ +triggeredAt: DateTime
+ +severity: Severity
+}
+enum MeasurementType {
+ TEMPERATURE
+ HUMIDITY
+ PRESSURE
+ WIND_SPEED
+}
+enum SensorStatus {
+ ONLINE
+ OFFLINE
+}
+enum SourceType {
+ DEVICE
+ WEATHER_API
+}
+enum Condition {
+ ABOVE
+ BELOW
+}
+enum Severity {
+ INFO
+ WARNING
+ CRITICAL
+}
+
+Station "1" -- "0..*" Sensor : has >
+Sensor "1" -- "0..*" Measurement : produces >
+Sensor "1" -- "0..*" AlertRule : monitored by >
+AlertRule "1" -- "0..*" Alert : raises >
+Alert "0..*" -- "1" Measurement : caused by >
+Sensor --> MeasurementType
+Sensor --> SensorStatus
+Sensor --> SourceType
+AlertRule --> Condition
+AlertRule --> Severity
+@enduml
