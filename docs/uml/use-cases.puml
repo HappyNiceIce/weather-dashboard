@@ -1,0 +1,25 @@
+@startuml
+left to right direction
+actor Operator
+actor Scheduler
+actor "External Weather API" as Ext
+
+rectangle "Weather Monitor" {
+ usecase "Collect Measurements" as UC1
+ usecase "Register Sensor" as UC2
+ usecase "View Dashboard" as UC3
+ usecase "View History" as UC4
+ usecase "Configure Alert Rule" as UC5
+ usecase "View Alerts" as UC6
+ usecase "Evaluate Alert Rules" as UC7
+}
+
+Scheduler -- UC1
+UC1 -- Ext
+Operator -- UC2
+Operator -- UC3
+Operator -- UC4
+Operator -- UC5
+Operator -- UC6
+UC1 ..> UC7 : <<include>>
+@enduml

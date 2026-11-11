@@ -1,0 +1,46 @@
+@startuml domain-model
+class Station {
+ +id: UUID
+ +name: String
+ +location: String
+}
+class Sensor {
+ +id: UUID
+ +name: String
+ +measurementType: MeasurementType
+ +unit: String
+}
+class DataSource {
+ +id: UUID
+ +name: String
+ +type: SourceType
+ +status: SourceStatus
+ +lastSuccessAt: DateTime
+}
+class Measurement {
+ +id: UUID
+ +value: Double
+ +timestamp: DateTime
+}
+enum MeasurementType {
+ TEMPERATURE
+ HUMIDITY
+ PRESSURE
+ WIND_SPEED
+}
+enum SourceType {
+ WEATHER_API
+ PHYSICAL_SENSOR
+}
+enum SourceStatus {
+ ONLINE
+ OFFLINE
+}
+
+Station "1" -- "0..*" Sensor : has >
+Sensor "0..*" -- "1" DataSource : reads from >
+Sensor "1" -- "0..*" Measurement : produces >
+Sensor --> MeasurementType
+DataSource --> SourceType
+DataSource --> SourceStatus
+@enduml

@@ -1,0 +1,28 @@
+@startuml components
+skinparam componentStyle rectangle
+
+component "Presentation\n(Web API, Dashboard UI,\nIngestionScheduler)" as Presentation
+component "Application\n(IngestionService, MonitoringService,\nSensorAdminService)" as Application
+component "Domain\n(Station, Sensor, DataSource,\nMeasurement)" as Domain
+component "Infrastructure\n(SQLite repositories,\nsource adapters)" as Infrastructure
+database "SQLite" as DB
+cloud "External Data Source\n(Weather API, sensors)" as Ext
+
+interface "IMeasurementSource" as ISource
+interface "IMeasurementRepository" as IMRepo
+interface "ISensorRepository" as ISRepo
+interface "IDataSourceRepository" as IDRepo
+
+Presentation --> Application
+Application --> Domain
+Application --> ISource
+Application --> IMRepo
+Application --> ISRepo
+Application --> IDRepo
+Infrastructure ..|> ISource
+Infrastructure ..|> IMRepo
+Infrastructure ..|> ISRepo
+Infrastructure ..|> IDRepo
+Infrastructure --> DB
+Infrastructure --> Ext
+@enduml
