@@ -1,0 +1,34 @@
+@startuml collect-measurements-sequence
+title UC-01 Collect Measurements
+
+participant "IngestionScheduler" as Sch
+participant "IngestionService" as Ing
+participant "WeatherApiAdapter\n(IMeasurementSource)" as Src
+participant "MeasurementValidator" as Val
+participant "MeasurementRepository" as MRepo
+participant "DataSourceRepository" as DRepo
+
+Sch -> Ing: collect(sensorId)
+Ing -> Src: fetchLatest(sensor)
+
+alt source available
+  Src --> Ing: RawReading
+  Ing -> Val: validate(reading)
+  alt valid reading
+    Val --> Ing: OK
+    Ing -> MRepo: save(measurement)
+    MRepo --> Ing: saved measurement
+    Ing -> DRepo: updateStatus(sourceId, ONLINE)
+    Ing --> Sch: CollectResult(Success)
+  else value out of range
+    Val --> Ing: ValidationError
+    Ing --> Sch: CollectResult(Rejected)
+  end
+else source unavailable or timeout 5 s
+  Src --> Ing: SourceUnavailableError
+  Ing -> Ing: retry up to 3 times
+  Ing -> DRepo: updateStatus(sourceId, OFFLINE)
+  Ing -> Ing: log failure
+  Ing --> Sch: CollectResult(Failed)
+end
+@enduml

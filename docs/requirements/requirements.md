@@ -78,3 +78,31 @@ Architectural impact: порт IMeasurementSource + адаптер на коже
 | MeasurementType | вид величини | TEMPERATURE, HUMIDITY, PRESSURE, WIND_SPEED |
 | SourceType | вид джерела | WEATHER_API, PHYSICAL_SENSOR |
 | SourceStatus | стан джерела | ONLINE, OFFLINE |
+
+## Трасованість FR → Use Case
+
+| FR | Use Case |
+|----|----------|
+| FR-01, FR-06 | UC-02 View Current Readings |
+| FR-02 | UC-01 Collect Measurements |
+| FR-03 | UC-03 View History |
+| FR-04 | UC-04 Filter Readings by Date |
+| FR-05 | UC-07 Handle Source Failure (extend UC-01) |
+| FR-07 | UC-06 Validate Reading (include UC-01) |
+| FR-08 | UC-05 Manage Sensors |
+
+
+## Специфікація ключового use case
+
+| Поле | Значення |
+|------|----------|
+| ID | UC-01 |
+| Name | Collect Measurements |
+| Primary Actor | Scheduler |
+| Secondary Actor | External Data Source |
+| Preconditions | Сенсор і джерело даних зареєстровані та увімкнені |
+| Trigger | Спрацював таймер опитування |
+| Main Scenario | 1. Scheduler запускає збір для сенсора. 2. Система запитує останнє значення в джерела. 3. Система перевіряє значення (UC-06). 4. Система зберігає Measurement з часовою міткою. 5. Система оновлює статус джерела на ONLINE. 6. Система повертає результат Success. |
+| Alternative / Error | A1: значення поза допустимим діапазоном → Measurement не зберігається, результат Rejected. A2: джерело недоступне або таймаут 5 с (UC-07) → до 3 повторів; якщо не вдалося, джерело OFFLINE, помилка логується, збір з інших джерел триває. |
+| Postconditions | Успіх: Measurement збережено, джерело ONLINE. Збій: нових даних немає, джерело OFFLINE. |
+| Related FR/NFR | FR-02, FR-05, FR-07; NFR-01, NFR-03 |
